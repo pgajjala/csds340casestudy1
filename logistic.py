@@ -27,7 +27,7 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
 
     # Fit the model and get the predicted probabilities
     model.fit(trainFeatures, trainLabels)
-    testOutputs = model.predict(testFeatures)
+    testOutputs = model.predict_proba(testFeatures)[:,1]
 
     return testOutputs
 
