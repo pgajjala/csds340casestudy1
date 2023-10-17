@@ -20,7 +20,9 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
     trainFeatures = trainFeatures.loc[:, best_features]
     testFeatures = testFeatures.loc[:, best_features]
 
-    # Make a pipeline using mean imputation
+    # Make a pipeline using imputation
+    # mean - 0.89, 42.59% false positive
+    # median = constant - 0.877, 38.27% false positive
     model = make_pipeline(SimpleImputer(missing_values=-1, strategy='mean'), KNeighborsClassifier(n_neighbors=19, metric='minkowski', weights='uniform'))
     # or n_neighbors = 8
     

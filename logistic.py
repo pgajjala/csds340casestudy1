@@ -8,6 +8,18 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 
 
+def imputation(train, test, how=None):
+    if how == 'mean':
+        means = train.mean()
+        train = train.fillna(means)
+        test = test.fillna(means)
+        return train, test
+    if how == 'zero':
+        train = train.fillna(0)
+        test = test.fillna(0)
+        return train, test
+    return train, test
+
 def predictTest(trainFeatures, trainLabels, testFeatures):
     # Select the best features as determined by SBS
     best_features = [True,  True , True , True , True , True , True , True , True , True , True , True,
@@ -17,13 +29,22 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
     trainFeatures = trainFeatures.loc[:, best_features]
     testFeatures = testFeatures.loc[:, best_features]
 
-    scaler = StandardScaler().fit(trainFeatures)
-    trainFeatures = pd.DataFrame(scaler.transform(trainFeatures),index=trainFeatures.index, columns=trainFeatures.columns)
-    testFeatures = pd.DataFrame(scaler.transform(testFeatures),index=testFeatures.index, columns=testFeatures.columns)
+    imputer = SimpleImputer(missing_values=-1, strategy='mean')
+    imputer.fit(trainFeatures)
+    trainFeatures = imputer.transform(trainFeatures)
+    testFeatures = imputer.transform(testFeatures)
 
-    # Make a pipeline using mean imputation
-    model = make_pipeline(SimpleImputer(missing_values=-1, strategy='mean'),
-                          LogisticRegression(random_state=729, C=0.1, dual=False, penalty='l2'))
+    trainFeatures = trainFeatures.replace(-1, np.nan)
+    testFeatures = testFeatures.replace(-1, np.nan)
+    trainFeatures, testFeatures = imputation(trainFeatures, testFeatures, how='mean')
+    
+    scaler = StandardScaler().fit(trainFeatures)
+    trainFeatures = scaler.transform(trainFeatures)
+    testFeatures = scaler.transform(testFeatures)
+
+    # Make a pipeline using imputation
+    # mean - 
+    model = LogisticRegression(random_state=729, C=0.1, dual=False, penalty='l2')
 
     # Fit the model and get the predicted probabilities
     model.fit(trainFeatures, trainLabels)
@@ -40,7 +61,7 @@ if __name__ == '__main__':
     X, y = df.drop(columns=[30]), df[30]
 
     # Train-test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729, stratify=y)
 
     # Predict the labels and get the ROC AUC score
     out = predictTest(X_train, y_train, X_test)

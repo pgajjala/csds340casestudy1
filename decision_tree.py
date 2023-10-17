@@ -20,8 +20,10 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
     trainFeatures = trainFeatures.loc[:, best_features]
     testFeatures = testFeatures.loc[:, best_features]
 
-    # Make a pipeline using mean imputation
-    model = make_pipeline(SimpleImputer(missing_values=-1, strategy='mean'), DecisionTreeClassifier(random_state=729, criterion='entropy'))
+    # Make a pipeline using imputation
+    # mean - 0.816, false positive = 74.96%
+    # median = constant - 0.744, false positive = 67.28%
+    model = make_pipeline(SimpleImputer(missing_values=-1, strategy='constant'), DecisionTreeClassifier(random_state=729, criterion='entropy'))
     # or n_neighbors = 8
     
     # Fit the model and get the predicted probabilities
