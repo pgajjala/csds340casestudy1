@@ -8,18 +8,6 @@ from sklearn.preprocessing import StandardScaler
 import numpy as np
 
 
-def imputation(train, test, how=None):
-    if how == 'mean':
-        means = train.mean()
-        train = train.fillna(means)
-        test = test.fillna(means)
-        return train, test
-    if how == 'zero':
-        train = train.fillna(0)
-        test = test.fillna(0)
-        return train, test
-    return train, test
-
 def predictTest(trainFeatures, trainLabels, testFeatures):
     # Select the best features as determined by SBS
     best_features = [True,  True , True , True , True , True , True , True , True , True , True , True,
@@ -34,10 +22,6 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
     trainFeatures = imputer.transform(trainFeatures)
     testFeatures = imputer.transform(testFeatures)
 
-    trainFeatures = trainFeatures.replace(-1, np.nan)
-    testFeatures = testFeatures.replace(-1, np.nan)
-    trainFeatures, testFeatures = imputation(trainFeatures, testFeatures, how='mean')
-    
     scaler = StandardScaler().fit(trainFeatures)
     trainFeatures = scaler.transform(trainFeatures)
     testFeatures = scaler.transform(testFeatures)
