@@ -30,7 +30,7 @@ X, y = df.drop(columns=[30]), df[30]
 # Replace -1 with NA
 X = X.replace(-1, np.nan)
 # Perform the train-test split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729, stratify=y)
 
 
 

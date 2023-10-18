@@ -41,13 +41,13 @@ if __name__ == '__main__':
     X, y = df.drop(columns=[30]), df[30]
 
     # Train-test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729, stratify=y)
 
     # Predict the labels and get the ROC AUC score
     out = predictTest(X_train, y_train, X_test)
     score = roc_auc_score(y_test, out)
   
-    # Best ROC AUC: 0.893
+    # Best ROC AUC: 0.722
     print(f"ROC AUC Score: {score}")
 
     # Get the full ROC curve
@@ -60,5 +60,5 @@ if __name__ == '__main__':
     # Get the TPR at the found index
     specific_tpr = tpr[idx]
 
-    # Best TPR at 1% FPR: 0.235
+    # Best TPR at 1% FPR: 0.6194
     print(f"True Positive Rate at {desired_fpr * 100:.2f}% False Positive Rate: {specific_tpr * 100:.2f}%")

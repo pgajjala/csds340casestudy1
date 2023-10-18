@@ -28,7 +28,7 @@ X, y = df.drop(columns=[30]), df[30]
 # Replace -1 with NA
 X = X.replace(-1, np.nan)
 # Perform the train-test split
-X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729)
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729, stratify=y)
 
 # Impute the missing values
 X_train_imputed, X_test_imputed = imputation(X_train, X_test, how='mean')
@@ -41,7 +41,7 @@ best_features = None
 # Iterate through using 1-29 features
 for k in range(1, 30):
     # Initialize our model
-    rbf_svm = SVC(kernel='rbf', probability=True)
+    rbf_svm = SVC(kernel='sigmoid', probability=True)
     # Intialize our SBS model
     sfs = SequentialFeatureSelector(rbf_svm, n_features_to_select=k, direction='backward', cv=3)
 
@@ -76,7 +76,7 @@ print(f"Best K Components: {best_k}")
 print(f"Best K Features: {best_features}")
 
 # Initialize our final model
-rbf_svm = SVC(kernel='rbf', probability=True)
+rbf_svm = SVC(kernel='sigmoid', probability=True)
 
 # Use only the best features as determined via SBS
 X_train_selected = X_train_imputed.loc[:, best_features]

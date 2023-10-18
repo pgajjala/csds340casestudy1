@@ -21,7 +21,7 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
 
     # Fit the model and get the predicted probabilities
     model.fit(trainFeatures, trainLabels)
-    testOutputs = model.predict(testFeatures)
+    testOutputs = model.predict_proba(testFeatures)[:, 1]
 
     return testOutputs
 
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     X, y = df.drop(columns=[30]), df[30]
 
     # Train-test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729, stratify=y)
 
     # Predict the labels and get the ROC AUC score
     out = predictTest(X_train, y_train, X_test)

@@ -12,7 +12,7 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
     # Select the best features as determined by SBS
     best_features = [True,  True , True , True , True , True , True , True , True , True , True , True,
   True , True , True , True , True , True , True  ,True , True , True , True , True,
-  True , True , True , True , True, False]
+  True , True , True , True , True, True]
 
     trainFeatures = trainFeatures.loc[:, best_features]
     testFeatures = testFeatures.loc[:, best_features]
@@ -27,7 +27,6 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
     testFeatures = scaler.transform(testFeatures)
 
     # Make a pipeline using imputation
-    # mean - 
     model = LogisticRegression(random_state=729, C=0.1, dual=False, penalty='l2')
 
     # Fit the model and get the predicted probabilities
@@ -51,7 +50,7 @@ if __name__ == '__main__':
     out = predictTest(X_train, y_train, X_test)
     score = roc_auc_score(y_test, out)
 
-    # Best ROC AUC Score: 0.693
+    # Best ROC AUC Score: 0.9024
     print(f"ROC AUC Score: {score}")
 
     # Get the full ROC curve
@@ -64,5 +63,5 @@ if __name__ == '__main__':
     # Get the TPR at the found index
     specific_tpr = tpr[idx]
 
-    # Best TPR at 1% FPR: 0.747
+    # Best TPR at 1% FPR: 0.3742
     print(f"True Positive Rate at {desired_fpr * 100:.2f}% False Positive Rate: {specific_tpr * 100:.2f}%")
