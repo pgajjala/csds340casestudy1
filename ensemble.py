@@ -1,30 +1,30 @@
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import roc_auc_score, roc_curve
-from sklearn.tree import DecisionTreeClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.impute import SimpleImputer
+from sklearn.svm import SVC
+from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import VotingClassifier
+from sklearn.tree import DecisionTreeClassifier
 import numpy as np
 
 
 def predictTest(trainFeatures, trainLabels, testFeatures):
     # Select the best features as determined by SBS
-    best_features = [True, False ,False, True , True, False, False, False,  True ,False , True, False,
- False, False, False, False ,False ,False ,False , True, False ,False ,False, False,
- False ,False, False ,False, False, False]
-
-#     best_features=[True ,False , True,  True , True ,False , True , True , True,  True, False, False,
-#  False ,False, False ,False ,False ,False, False , True, False, False, False, False,
-#   True, False , True, False,  True ,False]
-
-    trainFeatures = trainFeatures.loc[:, best_features]
-    testFeatures = testFeatures.loc[:, best_features]
 
     # Make a pipeline using imputation
-    # mean - 0.816, false positive = 74.96%
-    # median = constant - 0.744, false positive = 67.28%
-    model = make_pipeline(SimpleImputer(missing_values=-1, strategy='constant'), DecisionTreeClassifier(random_state=729, criterion='gini'))
-    # or n_neighbors = 8
+    knn = KNeighborsClassifier(n_neighbors=77)
+    rbf_svm = SVC(kernel='rbf', C=5, gamma='scale', probability=True, class_weight='balanced')
+    logistic = LogisticRegression(random_state=729, C=5, dual=False, penalty='l2')
+    tree = DecisionTreeClassifier(random_state=729, criterion='gini')
+
+    estimators=[('knn', knn), ('svc', rbf_svm), ('dtc', tree)]
+
+    
+    model = make_pipeline(SimpleImputer(missing_values=-1, strategy='mean'), VotingClassifier(estimators, voting='soft'))
+
     
     # Fit the model and get the predicted probabilities
     model.fit(trainFeatures, trainLabels)
@@ -47,7 +47,7 @@ if __name__ == '__main__':
     out = predictTest(X_train, y_train, X_test)
     score = roc_auc_score(y_test, out)
   
-    # Best ROC AUC: 0.75
+    # Best ROC AUC: 0.89
     print(f"ROC AUC Score: {score}")
 
     # Get the full ROC curve
@@ -60,5 +60,5 @@ if __name__ == '__main__':
     # Get the TPR at the found index
     specific_tpr = tpr[idx]
 
-    # Best TPR at 1% FPR: 0.6452
+    # Best TPR at 1% FPR: 0.5419
     print(f"True Positive Rate at {desired_fpr * 100:.2f}% False Positive Rate: {specific_tpr * 100:.2f}%")
