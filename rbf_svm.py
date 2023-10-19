@@ -22,14 +22,16 @@ def tprAtFPR(labels, outputs, desiredFPR):
 
 def predictTest(trainFeatures, trainLabels, testFeatures):
     # Select the best features as determined by SBS
-    best_features = [True, True, True, True, True, True, True, True, True, True, True, True, False, True, True, True,
-                     True, False, True, True, True, True, True, True, True, True, True, True, True, True]
+    best_features = [True, False, False,  True,  True, False, True,  True,  True , True , True ,False,
+                    False ,False ,False ,False , True ,False,  True,  True,  True ,False , True, False,
+                    False , True  ,True  ,True , True , True]
 
     trainFeatures = trainFeatures[:, best_features]
     testFeatures = testFeatures[:, best_features]
 
     # Make a pipeline using mean imputation
-    model = make_pipeline(SimpleImputer(missing_values=-1, strategy='mean'), SVC(kernel='rbf', C=10, probability=True))
+    model = make_pipeline(SimpleImputer(missing_values=-1, strategy='mean'), SVC(kernel='rbf', C=1, gamma='scale', 
+                                                                                 probability=True, class_weight='balanced'))
 
     # Fit the model and get the predicted probabilities
     model.fit(trainFeatures, trainLabels)
@@ -46,7 +48,7 @@ if __name__ == '__main__':
     X, y = df[:, :30], df[:, 30]
 
     # Train-test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729, stratify=y)
 
     # Predict the labels and get the ROC AUC score
     out = predictTest(X_train, y_train, X_test)
