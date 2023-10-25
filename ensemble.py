@@ -55,9 +55,8 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
     rbf_svm = SVC(kernel='rbf', C=5, gamma='scale', probability=True, class_weight='balanced')
     logistic = LogisticRegression(random_state=729, C=5, dual=False, penalty='l2')
     tree = DecisionTreeClassifier(random_state=729, criterion='gini')
-    forest = make_pipeline(SimpleImputer(missing_values=-1, strategy='mean'),
-                          RandomForestClassifier(criterion='entropy', max_depth=10, min_samples_leaf=2,
-                                                 min_samples_split=10, n_estimators=50))
+    forest = RandomForestClassifier(criterion='entropy', max_depth=10, min_samples_leaf=2,
+                                                 min_samples_split=10, n_estimators=50)
 
     estimators=[('knn', knn), ('svc', rbf_svm), ('rf', forest)]
 
