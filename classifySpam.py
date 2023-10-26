@@ -2,10 +2,8 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.pipeline import make_pipeline
 from sklearn.impute import SimpleImputer
 from sklearn.svm import SVC
-from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import VotingClassifier, RandomForestClassifier
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 
 
 def predictTest(trainFeatures, trainLabels, testFeatures):
@@ -25,7 +23,7 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
     estimators=[('knn', knn), ('svc', rbf_svm), ('rf', forest)]
 
     
-    model = make_pipeline(SimpleImputer(missing_values=-1, strategy='mean'), StandardScaler(), VotingClassifier(estimators, voting='soft'))
+    model = make_pipeline(SimpleImputer(missing_values=-1, strategy='mean'), MinMaxScaler(), VotingClassifier(estimators, voting='soft'))
 
     
     # Fit the model and get the predicted probabilities
