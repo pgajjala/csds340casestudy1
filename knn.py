@@ -4,6 +4,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from sklearn.metrics import roc_auc_score, roc_curve
 from sklearn.pipeline import make_pipeline
 from sklearn.impute import SimpleImputer
+from sklearn.preprocessing import StandardScaler
 import numpy as np
 
 
@@ -17,13 +18,13 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
 #  False ,False, False ,False ,False ,False, False , True, False, False, False, False,
 #   True, False , True, False,  True ,False]
 
-    trainFeatures = trainFeatures.loc[:, best_features]
-    testFeatures = testFeatures.loc[:, best_features]
+    trainFeatures = trainFeatures[:, best_features]
+    testFeatures = testFeatures[:, best_features]
 
     # Make a pipeline using imputation
     # mean - 0.89, 42.59% false positive
     # median = constant - 0.877, 38.27% false positive
-    model = make_pipeline(SimpleImputer(missing_values=-1, strategy='mean'), KNeighborsClassifier(n_neighbors=19, metric='minkowski', weights='uniform'))
+    model = make_pipeline(SimpleImputer(missing_values=-1, strategy='mean'), StandardScaler(), KNeighborsClassifier(n_neighbors=19, metric='minkowski', weights='uniform'))
     # or n_neighbors = 8
     
     # Fit the model and get the predicted probabilities
@@ -34,31 +35,43 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
 
 
 if __name__ == '__main__':
-    # Read the data
-    df = pd.read_csv("spamTrain1.csv", header=None)
+    # Read and shuffle the training data
+    df = np.loadtxt("spamTrain1.csv", delimiter=',')
 
-    # Split features and label
-    X, y = df.drop(columns=[30]), df[30]
 
-    # Train-test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729, stratify=y)
+    # Read and shuffle the testing data
+    df_test = np.loadtxt("spamTrain2.csv", delimiter=',')
+    outs = []
+    tprs = []
 
-    # Predict the labels and get the ROC AUC score
-    out = predictTest(X_train, y_train, X_test)
-    score = roc_auc_score(y_test, out)
-  
-    # Best ROC AUC: 0.889
-    print(f"ROC AUC Score: {score}")
+    for _ in range(100):
+        np.random.shuffle(df)
+        np.random.shuffle(df_test)
+        # Assign the first half of the data to train and the second half to test
+        X_train, X_test = np.concatenate((df[:750, :30], df_test[:750, :30]), axis=0), \
+                          np.concatenate((df[750:, :30], df_test[750:, :30]), axis=0)
 
-    # Get the full ROC curve
-    fpr, tpr, thresholds = roc_curve(y_test, out)
+        y_train, y_test = np.concatenate((df[:750, 30], df_test[:750, 30]), axis=0), \
+                          np.concatenate((df[750:, 30], df_test[750:, 30]), axis=0)
+        # Predict the labels and get the ROC AUC score
+        out = predictTest(X_train, y_train, X_test)
+        score = roc_auc_score(y_test, out)
+        outs.append(score)
+        # print(f"ROC AUC Score: {score}")
 
-    # Calculate the TPR at a 1% FPR
-    desired_fpr = 0.01
-    idx = np.argmax(fpr >= desired_fpr)
+        # Get the full ROC curve
+        fpr, tpr, thresholds = roc_curve(y_test, out)
 
-    # Get the TPR at the found index
-    specific_tpr = tpr[idx]
+        # Calculate the TPR at a 1% FPR
+        desired_fpr = 0.01
+        idx = np.argmax(fpr >= desired_fpr)
 
-    # Best TPR at 1% FPR: 0.3935
-    print(f"True Positive Rate at {desired_fpr * 100:.2f}% False Positive Rate: {specific_tpr * 100:.2f}%")
+        # Get the TPR at the found index
+        specific_tpr = tpr[idx]
+        tprs.append(specific_tpr)
+
+        # print(f"True Positive Rate at {desired_fpr * 100:.2f}% False Positive Rate: {tprAtFPR(y_test, out, 0.01)[0]}")
+    print(np.mean(outs))
+    print(np.mean(tprs))
+    print(np.std(outs))
+    print(np.std(tprs))

@@ -14,8 +14,8 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
   True , True , True , True , True , True , True  ,True , True , True , True , True,
   True , True , True , True , True, True]
 
-    trainFeatures = trainFeatures.loc[:, best_features]
-    testFeatures = testFeatures.loc[:, best_features]
+    trainFeatures = trainFeatures[:, best_features]
+    testFeatures = testFeatures[:, best_features]
 
     imputer = SimpleImputer(missing_values=-1, strategy='mean')
     imputer.fit(trainFeatures)
@@ -37,31 +37,43 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
 
 
 if __name__ == '__main__':
-    # Read the data
-    df = pd.read_csv("spamTrain1.csv", header=None)
+    # Read and shuffle the training data
+    df = np.loadtxt("spamTrain1.csv", delimiter=',')
 
-    # Split features and label
-    X, y = df.drop(columns=[30]), df[30]
 
-    # Train-test split
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=729, stratify=y)
+    # Read and shuffle the testing data
+    df_test = np.loadtxt("spamTrain2.csv", delimiter=',')
+    outs = []
+    tprs = []
 
-    # Predict the labels and get the ROC AUC score
-    out = predictTest(X_train, y_train, X_test)
-    score = roc_auc_score(y_test, out)
+    for _ in range(100):
+        np.random.shuffle(df)
+        np.random.shuffle(df_test)
+        # Assign the first half of the data to train and the second half to test
+        X_train, X_test = np.concatenate((df[:750, :30], df_test[:750, :30]), axis=0), \
+                          np.concatenate((df[750:, :30], df_test[750:, :30]), axis=0)
 
-    # Best ROC AUC Score: 0.9024
-    print(f"ROC AUC Score: {score}")
+        y_train, y_test = np.concatenate((df[:750, 30], df_test[:750, 30]), axis=0), \
+                          np.concatenate((df[750:, 30], df_test[750:, 30]), axis=0)
+        # Predict the labels and get the ROC AUC score
+        out = predictTest(X_train, y_train, X_test)
+        score = roc_auc_score(y_test, out)
+        outs.append(score)
+        # print(f"ROC AUC Score: {score}")
 
-    # Get the full ROC curve
-    fpr, tpr, thresholds = roc_curve(y_test, out)
+        # Get the full ROC curve
+        fpr, tpr, thresholds = roc_curve(y_test, out)
 
-    # Calculate the TPR at a 1% FPR
-    desired_fpr = 0.01
-    idx = np.argmax(fpr >= desired_fpr)
+        # Calculate the TPR at a 1% FPR
+        desired_fpr = 0.01
+        idx = np.argmax(fpr >= desired_fpr)
 
-    # Get the TPR at the found index
-    specific_tpr = tpr[idx]
+        # Get the TPR at the found index
+        specific_tpr = tpr[idx]
+        tprs.append(specific_tpr)
 
-    # Best TPR at 1% FPR: 0.3742
-    print(f"True Positive Rate at {desired_fpr * 100:.2f}% False Positive Rate: {specific_tpr * 100:.2f}%")
+        # print(f"True Positive Rate at {desired_fpr * 100:.2f}% False Positive Rate: {tprAtFPR(y_test, out, 0.01)[0]}")
+    print(np.mean(outs))
+    print(np.mean(tprs))
+    print(np.std(outs))
+    print(np.std(tprs))
