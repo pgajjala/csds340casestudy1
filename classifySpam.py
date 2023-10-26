@@ -19,8 +19,6 @@ def predictTest(trainFeatures, trainLabels, testFeatures):
     # Make a pipeline using imputation
     knn = KNeighborsClassifier(n_neighbors=77)
     rbf_svm = SVC(kernel='rbf', C=5, gamma='scale', probability=True, class_weight='balanced')
-    logistic = LogisticRegression(random_state=729, C=5, dual=False, penalty='l2')
-    tree = DecisionTreeClassifier(random_state=729, criterion='gini')
     forest = RandomForestClassifier(criterion='entropy', max_depth=10, min_samples_leaf=2,
                                                  min_samples_split=10, n_estimators=50)
 
